@@ -15,27 +15,20 @@ with the key of that entry.
 Map = [
 
   {
-    'Example' :
-    {
-      '^/printing/example/$' : 'Index',
-
-      'Page' :
-      {
-        '^/printing/example/plain-text(?:(/[a-zA-Z0-9-/]+))?$' : 'PlainText',
-        '^/printing/example/html(?:(/[a-zA-Z0-9-/]+))?$'       : 'Html',
-      },
-    },
     'Controllers' :
     {
         'Printer' :
         {
                    
             '^/printing/info.json' : 'info',
-            '^/printing/print.pdf?$' : 'doPrint',
+            '^/printing/print.pdf' : 'doPrint',
             '^/printing/create.json' : 'create',
             '^/printing/(?:([a-zA-Z0-9]+)).pdf$' : 'get',
             
-        }
+        },
+        # TODO: remove
+        'Info':
+        {'^/printing/info.html':'Request'}
     }
   },
 
