@@ -88,8 +88,27 @@ class PrintController:
             Write("ERROR(" + str(ret) + ")\n\n" + error)
       
     def doPrint(self):
-        Header("Content-Type: text/plain")
-        Write("print.pdf request received ")
+        """
+        All in one method: creates and returns the PDF to the client.
+        """
+        cmd = ['java', '-cp', self.jarPath, 'org.mapfish.print.ShellMapPrinter',
+             '--config=' + self.configPath, '--verbose='+_getJavaLogLevel()]
+        self._addCommonJavaParams(cmd)
+        spec = self._getQueryStringParam("spec")
+        exe = Popen(cmd, stdin = PIPE, stdout = PIPE, stderr = PIPE)
+        exe.stdin.write(spec)
+        exe.stdin.close()
+        result = exe.stdout.read()
+        error = exe.stderr.read()
+        if len(error)>0:
+            log.error(error)
+        ret = exe.wait()
+        if ret == 0:
+            Header( "Content-type: application/pdf", Status = 200)
+            Write(result)            
+        else:
+            Header( "Content-type: text/plain; charset=utf-8", Status = 500)
+            Write("ERROR(" + str(ret) + ")\n\n" + error)
       
     def create(self):
         Header("Content-Type: text/plain")
