@@ -23,7 +23,7 @@ Map = [
             '^/printing/info.json' : 'info',
             '^/printing/print.pdf' : 'doPrint',
             '^/printing/create.json' : 'create',
-            '^/printing/(?:([a-zA-Z0-9]+)).pdf$' : 'get',
+            '^/printing/(?:(\w+)).pdf$' : 'get',
             
         },
         # TODO: remove
