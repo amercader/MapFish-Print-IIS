@@ -3,7 +3,7 @@
 
 import logging
 
-from os.path import basename, getsize
+from os.path import basename, getsize, exists
 from os import unlink, listdir, sep, stat
 import time
 from subprocess import Popen, PIPE
@@ -26,6 +26,8 @@ from Http import *
 #TODO: Get this from config
 JAR_PATH = "C:\\Python25\\MapFish\\print-standalone-1.2-SNAPSHOT.jar"
 CONFIG_PATH = "C:\\Python25\\MapFish\\test.yaml"
+TEMP_DIR = "C:\\Python25\\PyISAPIe\\tmp"
+
 
 """
 Logging setup
@@ -111,13 +113,88 @@ class PrintController:
             Write("ERROR(" + str(ret) + ")\n\n" + error)
       
     def create(self):
-        Header("Content-Type: text/plain")
-        Write("create.json request received ")
-      
-    def get(self,id):
-        Header("Content-Type: text/plain")
-        Write("<id>.pdf request received with id = " + str(id))
+        """
+        Create the PDF and returns to the client (in JSON) the URL to get the
+        PDF.
+        """
+        self._purgeOldFiles()
+        #TODO: access denied in C: windows temp
+        #pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX)
+        pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX,TEMP_DIR)
+        pdfFilename = pdfFile.name
+        pdfFile.close()
+        cmd = ['java',
+               '-cp', self.jarPath,
+               'org.mapfish.print.ShellMapPrinter',
+               '--config=' + self.configPath,
+               '--verbose='+_getJavaLogLevel(),
+               '--output=' + pdfFilename]
+        self._addCommonJavaParams(cmd)
+        spec = self._getQueryStringParam("spec")
+        exe = Popen(cmd, stdin = PIPE, stderr = PIPE)
+        exe.stdin.write(spec)
+        exe.stdin.close()
+        error = exe.stderr.read()
+        if len(error)>0:
+            log.error(error)
+        ret = exe.wait()
+        if ret == 0:
+            curId = basename(pdfFilename)[len(self.TEMP_FILE_PREFIX):-len(self.TEMP_FILE_SUFFIX)]
+            getURL = self._urlForAction("get", id = curId)
+            
+            Header( "Content-type: application/json; charset=utf-8", Status = 200)
+            Write(
+                json.dumps({
+                    'getURL': getURL,
+                    'messages': error
+                })
+            )
+        else:
+            try:
+                unlink(pdfFilename)
+            except OSError:
+                pass
+            Header( "Content-type: text/plain; charset=utf-8", Status = 500)
+            Write("ERROR(" + str(ret) + ")\n\nspec=" + spec + "\n\n" + error)
 
+    def get(self,id):
+        """
+        To get the PDF created previously.
+        """
+        #TODO: access denied in C: windows temp
+        #name = gettempdir() + sep + self.TEMP_FILE_PREFIX + id + self.TEMP_FILE_SUFFIX
+        name = TEMP_DIR + sep + self.TEMP_FILE_PREFIX + id + self.TEMP_FILE_SUFFIX
+        """
+        MapFish uses the FileApp method from Paste that handles all the things related 
+        with serving files. We will only handle 404 and 403 errors.
+        """
+        if not exists(name):
+            Header( "Content-type: text/plain; charset=utf-8", Status = 404 )
+            Write("Not found")
+        else:
+
+            try:
+                file = open(name, 'rb')
+            except (IOError, OSError), e:
+                Header( "Content-type: text/plain; charset=utf-8", Status = 403 )
+                Write("You are not allowed to access this file (%s)" % e)
+            contents = file.read()
+            file.close()
+            
+            Header(
+                [
+                    
+                    "Content-Type: application/pdf",
+                    "Content-Disposition: attachment; filename="+id+".pdf",
+                    "Pragma: public",
+                    "Expires: 0",
+                    "Cache-Control: private"
+                ],
+                Status = 200,
+                Length = getsize(name)
+            )
+            Write(contents)
+            
     def _addCommonJavaParams(self, cmd):
         """
         Adds the java system properties for the locale. Gets it from the request
@@ -183,6 +260,23 @@ class PrintController:
         return expr.sub(',"printURL":' + printURL + ',' +
                         '"createURL":' + createURL + '}', result)
     
+    def _purgeOldFiles(self):
+        """
+        Delete temp files that are more than TEMP_FILE_PURGE_SECONDS seconds old
+        """
+        #TODO: access denied in C: windows temp
+        #files=listdir(gettempdir())
+        files=listdir(TEMP_DIR)
+        for file in files:
+            if file.startswith(self.TEMP_FILE_PREFIX) and file.endswith(self.TEMP_FILE_SUFFIX):
+                #TODO: access denied in C: windows temp
+                #fullname = gettempdir() + sep + file
+                fullname = TEMP_DIR + sep + file
+                age = time.time() - stat(fullname).st_mtime
+                if age > self.TEMP_FILE_PURGE_SECONDS:
+                    log.info("deleting leftover file :" + fullname + " (age=" + str(age) + "s)")
+                    unlink(fullname)
+                    
     def _getQueryStringParam(self,name,default = False):
         qs = getattr(Env,"QUERY_STRING",False)
         if qs:
