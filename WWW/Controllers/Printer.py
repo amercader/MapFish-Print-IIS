@@ -25,12 +25,6 @@ except ImportError: from cgi import parse_qs
 
 from Http import *
 
-#TODO: Get this from config
-JAR_PATH = "C:\\Python25\\MapFish\\print-standalone-1.2-SNAPSHOT.jar"
-CONFIG_PATH = "C:\\Python25\\MapFish\\test.yaml"
-TEMP_DIR = "C:\\Python25\\PyISAPIe\\tmp"
-
-
 """
 Logging setup
 http://docs.python.org/library/logging.html#configuring-logging-for-a-library
@@ -77,7 +71,7 @@ class PrintController:
         if len(error)>0:
            log.error(error)
         ret = exe.wait()
-        Header("Content-Type: text/plain")
+
         if ret == 0:
             result = self._addURLs(result)
             callback = self._getQueryStringParam("var")
@@ -90,7 +84,7 @@ class PrintController:
         else:
             Header( "Content-type: text/plain; charset=utf-8", Status = 500)
             Write("ERROR(" + str(ret) + ")\n\n" + error)
-      
+
     def doPrint(self):
         """
         All in one method: creates and returns the PDF to the client.
@@ -120,9 +114,7 @@ class PrintController:
         PDF.
         """
         self._purgeOldFiles()
-        #TODO: access denied in C: windows temp
-        #pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX)
-        pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX,TEMP_DIR)
+        pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX,self.tempDir)
         pdfFilename = pdfFile.name
         pdfFile.close()
         cmd = ['java',
@@ -161,15 +153,12 @@ class PrintController:
 
     def get(self,id):
         """
-        To get the PDF created previously.
-        """
-        #TODO: access denied in C: windows temp
-        #name = gettempdir() + sep + self.TEMP_FILE_PREFIX + id + self.TEMP_FILE_SUFFIX
-        name = TEMP_DIR + sep + self.TEMP_FILE_PREFIX + id + self.TEMP_FILE_SUFFIX
-        """
+        Gets a PDF file previously created.
         MapFish uses the FileApp method from Paste that handles all the things related 
         with serving files. We will only handle 404 and 403 errors.
         """
+        name = self.tempDir + sep + self.TEMP_FILE_PREFIX + id + self.TEMP_FILE_SUFFIX
+
         if not exists(name):
             Header( "Content-type: text/plain; charset=utf-8", Status = 404 )
             Write("Not found")
@@ -182,10 +171,8 @@ class PrintController:
                 Write("You are not allowed to access this file (%s)" % e)
             contents = file.read()
             file.close()
-            
             Header(
                 [
-                    
                     "Content-Type: application/pdf",
                     "Content-Disposition: attachment; filename="+id+".pdf",
                     "Pragma: public",
@@ -228,13 +215,16 @@ class PrintController:
             cmd.insert(1, "-Duser.country="+country)      
       
     def _setupConfig(self):
-        #TODO: Get this from config
-        
-        config = ConfigParser.SafeConfigParser()
+        """
+        Gets the configuration options from the ini file.
+        If no temp directory defined, the one retured by gettempdir() is used
+        """
+        config = ConfigParser.SafeConfigParser({"temp_dir":gettempdir()})
         config.read("printer.ini")
         
-        self.jarPath = config.get('Printer', 'jarpath')
-        self.configPath = CONFIG_PATH      
+        self.jarPath = config.get('Printer', 'jar_path')
+        self.configPath = config.get('Printer', 'config_path')
+        self.tempDir = config.get('Printer', 'temp_dir')
 
     def _urlForAction(self, actionName, id = None):
         """
@@ -270,20 +260,19 @@ class PrintController:
         """
         Delete temp files that are more than TEMP_FILE_PURGE_SECONDS seconds old
         """
-        #TODO: access denied in C: windows temp
-        #files=listdir(gettempdir())
-        files=listdir(TEMP_DIR)
+        files=listdir(self.tempDir)
         for file in files:
             if file.startswith(self.TEMP_FILE_PREFIX) and file.endswith(self.TEMP_FILE_SUFFIX):
-                #TODO: access denied in C: windows temp
-                #fullname = gettempdir() + sep + file
-                fullname = TEMP_DIR + sep + file
+                fullname = self.tempDir + sep + file
                 age = time.time() - stat(fullname).st_mtime
                 if age > self.TEMP_FILE_PURGE_SECONDS:
                     log.info("deleting leftover file :" + fullname + " (age=" + str(age) + "s)")
                     unlink(fullname)
                     
     def _getQueryStringParam(self,name,default = False):
+        """
+        Gets a parameter from the query string
+        """
         qs = getattr(Env,"QUERY_STRING",False)
         if qs:
             qs = parse_qs(qs)
