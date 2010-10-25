@@ -25,10 +25,7 @@ Map = [
             '^/printing/create.json' : 'create',
             '^/printing/(?:(.+)).pdf$' : 'get',
             
-        },
-        # TODO: remove
-        'Info':
-        {'^/printing/info.html':'Request'}
+        }
     }
   },
 

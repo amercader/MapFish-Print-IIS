@@ -1,4 +1,5 @@
-"""Print service handler script.
+"""
+Print service handler script.
 """
 
 import logging
@@ -12,17 +13,13 @@ import re
 import urlparse
 import ConfigParser
 
-
-"""
-This special imports are needed to support Python 2.5
-"""
+# This special imports are needed to support Python 2.5
 try: import json
 except ImportError: import simplejson as json
 try: from urlparse import parse_qs
 except ImportError: from cgi import parse_qs
 
-
-
+# PyISAPIe
 from Http import *
 
 """
@@ -38,7 +35,9 @@ log.addHandler(h)
 
 
 class PrintController:
-    """ Map printing service based on the MapFish print module """
+    """
+    Map printing service based on the MapFish print module
+    """
     
     TEMP_FILE_PREFIX = "mfPrintTempFile"
     TEMP_FILE_SUFFIX = ".pdf"
@@ -296,7 +295,7 @@ def _getJavaLogLevel():
 
         
 """
-This are the handlers mapped by PyISAPie
+These are the handlers mapped by PyISAPie
 """
 printer = PrintController()
 def info():

@@ -28,7 +28,7 @@ __all__ = ( \
  )
 
 from Http import Config, Env
-#adria
+# Commented because of missing win32 modules
 #from Http.Watch import Watch
 from WWW.URL import Map
 from sys import modules
@@ -67,7 +67,7 @@ def LoadMaps(Maps, Prefix = Prefix):
 def AddMap( Pattern, Module, Handler ):
     Search = re.compile(Pattern).search
 	
-    #adria
+    # Commented because of missing win32 modules in Watch module
     #if Config.Debug:
         #Module, Handler = InstallDebugHandler(Module, Handler)
     #else:
