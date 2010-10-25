@@ -10,6 +10,8 @@ from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, gettempdir
 import re
 import urlparse
+import ConfigParser
+
 
 """
 This special imports are needed to support Python 2.5
@@ -227,7 +229,11 @@ class PrintController:
       
     def _setupConfig(self):
         #TODO: Get this from config
-        self.jarPath = JAR_PATH
+        
+        config = ConfigParser.SafeConfigParser()
+        config.read("printer.ini")
+        
+        self.jarPath = config.get('Printer', 'jarpath')
         self.configPath = CONFIG_PATH      
 
     def _urlForAction(self, actionName, id = None):
