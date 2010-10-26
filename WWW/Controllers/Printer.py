@@ -160,7 +160,7 @@ class PrintController:
 
         if not exists(name):
             Header( "Content-type: text/plain; charset=utf-8", Status = 404 )
-            Write("Not found")
+            Write("File not found (" + id + ")")
         else:
 
             try:

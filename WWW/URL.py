@@ -19,11 +19,11 @@ Map = [
     {
         'Printer' :
         {
-                   
             '^/printing/info.json' : 'info',
-            '^/printing/print.pdf' : 'doPrint',
             '^/printing/create.json' : 'create',
-            '^/printing/(?:(.+)).pdf$' : 'get',
+            '^/printing/print.pdf$' : 'doPrint',
+            '^/printing/(?:([^print][\w-]+)).pdf$' : 'get',
+            
             
         }
     }
