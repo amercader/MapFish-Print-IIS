@@ -1,8 +1,8 @@
 MapFish Print Module controller for IIS
 ------------------------------------------------------------------------
 
-These modules allow you to run the MapFish print module on a IIS server
-configured with PyISAPIe.
+These modules implement the MapFish print protocol and allow you to run
+the MapFish print module on a IIS server configured with PyISAPIe.
 
 Support and feedback:
 	Adrià Mercader <amercadero@gmail.com>
@@ -61,3 +61,10 @@ Install:
 		
 		You should receive a JSON response with the capabilities of the
 		printing service.
+
+Resources:
+    * MapFish print module home:
+        http://www.mapfish.org/doc/print/
+
+    * PyISAPIe home:
+        http://pyisapie.sourceforge.net
