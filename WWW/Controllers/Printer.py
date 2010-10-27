@@ -117,7 +117,12 @@ class PrintController:
         PDF.
         """
         self._purgeOldFiles()
-        spec = self._getQueryStringParam("spec")
+        
+        """
+        According to the MapFish protocol, spec must be sent in the body
+        of a POST request
+        """
+        spec = Read()
         if not spec:
             Header( "Content-type: text/plain; charset=utf-8", Status = 400)
             Write("Parameter missing [spec]")
@@ -286,6 +291,9 @@ class PrintController:
             if name in qs:
                 return qs[name][0]
         return default
+    
+
+    
         
         
 def _getJavaLogLevel():
