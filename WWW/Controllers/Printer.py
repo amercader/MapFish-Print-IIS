@@ -92,20 +92,24 @@ class PrintController:
              '--config=' + self.configPath, '--verbose='+_getJavaLogLevel()]
         self._addCommonJavaParams(cmd)
         spec = self._getQueryStringParam("spec")
-        exe = Popen(cmd, stdin = PIPE, stdout = PIPE, stderr = PIPE)
-        exe.stdin.write(spec)
-        exe.stdin.close()
-        result = exe.stdout.read()
-        error = exe.stderr.read()
-        if len(error)>0:
-            log.error(error)
-        ret = exe.wait()
-        if ret == 0:
-            Header( "Content-type: application/pdf", Status = 200)
-            Write(result)            
+        if not spec:
+            Header( "Content-type: text/plain; charset=utf-8", Status = 400)
+            Write("Parameter missing [spec]")
         else:
-            Header( "Content-type: text/plain; charset=utf-8", Status = 500)
-            Write("ERROR(" + str(ret) + ")\n\n" + error)
+            exe = Popen(cmd, stdin = PIPE, stdout = PIPE, stderr = PIPE)
+            exe.stdin.write(spec)
+            exe.stdin.close()
+            result = exe.stdout.read()
+            error = exe.stderr.read()
+            if len(error)>0:
+                log.error(error)
+            ret = exe.wait()
+            if ret == 0:
+                Header( "Content-type: application/pdf", Status = 200)
+                Write(result)            
+            else:
+                Header( "Content-type: text/plain; charset=utf-8", Status = 500)
+                Write("ERROR(" + str(ret) + ")\n\n" + error)
       
     def create(self):
         """
@@ -113,42 +117,46 @@ class PrintController:
         PDF.
         """
         self._purgeOldFiles()
-        pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX,self.tempDir)
-        pdfFilename = pdfFile.name
-        pdfFile.close()
-        cmd = ['java',
-               '-cp', self.jarPath,
-               'org.mapfish.print.ShellMapPrinter',
-               '--config=' + self.configPath,
-               '--verbose='+_getJavaLogLevel(),
-               '--output=' + pdfFilename]
-        self._addCommonJavaParams(cmd)
         spec = self._getQueryStringParam("spec")
-        exe = Popen(cmd, stdin = PIPE, stderr = PIPE)
-        exe.stdin.write(spec)
-        exe.stdin.close()
-        error = exe.stderr.read()
-        if len(error)>0:
-            log.error(error)
-        ret = exe.wait()
-        if ret == 0:
-            curId = basename(pdfFilename)[len(self.TEMP_FILE_PREFIX):-len(self.TEMP_FILE_SUFFIX)]
-            getURL = self._urlForAction("get", id = curId)
-            
-            Header( "Content-type: application/json; charset=utf-8", Status = 200)
-            Write(
-                json.dumps({
-                    'getURL': getURL,
-                    'messages': error
-                })
-            )
+        if not spec:
+            Header( "Content-type: text/plain; charset=utf-8", Status = 400)
+            Write("Parameter missing [spec]")
         else:
-            try:
-                unlink(pdfFilename)
-            except OSError:
-                pass
-            Header( "Content-type: text/plain; charset=utf-8", Status = 500)
-            Write("ERROR(" + str(ret) + ")\n\nspec=" + spec + "\n\n" + error)
+            pdfFile = NamedTemporaryFile("w+b", -1, self.TEMP_FILE_SUFFIX, self.TEMP_FILE_PREFIX,self.tempDir)
+            pdfFilename = pdfFile.name
+            pdfFile.close()
+            cmd = ['java',
+                   '-cp', self.jarPath,
+                   'org.mapfish.print.ShellMapPrinter',
+                   '--config=' + self.configPath,
+                   '--verbose='+_getJavaLogLevel(),
+                   '--output=' + pdfFilename]
+            self._addCommonJavaParams(cmd)
+            exe = Popen(cmd, stdin = PIPE, stderr = PIPE)
+            exe.stdin.write(spec)
+            exe.stdin.close()
+            error = exe.stderr.read()
+            if len(error)>0:
+                log.error(error)
+            ret = exe.wait()
+            if ret == 0:
+                curId = basename(pdfFilename)[len(self.TEMP_FILE_PREFIX):-len(self.TEMP_FILE_SUFFIX)]
+                getURL = self._urlForAction("get", id = curId)
+                
+                Header( "Content-type: application/json; charset=utf-8", Status = 200)
+                Write(
+                    json.dumps({
+                        'getURL': getURL,
+                        'messages': error
+                    })
+                )
+            else:
+                try:
+                    unlink(pdfFilename)
+                except OSError:
+                    pass
+                Header( "Content-type: text/plain; charset=utf-8", Status = 500)
+                Write("ERROR(" + str(ret) + ")\n\nspec=" + spec + "\n\n" + error)
 
     def get(self,id):
         """
