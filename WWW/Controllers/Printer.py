@@ -49,7 +49,7 @@ class PrintController:
     actionsMap = {
         "info":"info.json",
         "doPrint":"print.pdf",
-        "create":"create.pdf",
+        "create":"create.json",
         "get":"%id%.pdf"
         }
     
