@@ -5,7 +5,10 @@ These modules implement the MapFish print protocol and allow you to run
 the MapFish print module on a IIS server configured with PyISAPIe.
 
 Support and feedback:
-	Adrià Mercader <amercadero@gmail.com>
+	Adrià Mercader (amercadero@gmail.com) - http://amercader.net
+
+Special thanks to:
+    Seth Girvin (geographika@gmail.com) - http://geographika.co.uk
 
 Requirements:
 	* Python 2.5+
@@ -68,3 +71,10 @@ Resources:
 
     * PyISAPIe home:
         http://pyisapie.sourceforge.net
+
+License:
+    This code is released under the GNU GENERAL PUBLIC LICENSE version 3
+    (GPLv3). Please check the following URL for the full details of this
+    license:
+
+    http://www.gnu.org/licenses/gpl.html
