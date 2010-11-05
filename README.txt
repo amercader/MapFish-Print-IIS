@@ -13,7 +13,8 @@ Special thanks to:
 Requirements:
 	* Python 2.5+
 	* IIS 7.0 (Not tested under IIS 6.0)
-	* PyISAPIe 1.1.0+ 
+	* PyISAPIe 1.1.0+
+	* JDK 1.5+
 	* MapFish print module JAR file
 	
 Install:
@@ -41,9 +42,9 @@ Install:
 	
 	4.	Copy the files contained in this package (Http and WWW modules
 		and the printer.ini file) where the PyISAPIe DLL can find them.
-		The easier choice is same DLL directory. You may want to move
-        Http and WWW, e.g to site-packages, but the printer.ini file
-        must be located in the DLL directory.
+		The easier choice is in the same folder as the DLL. . You may
+		want to move Http and WWW, e.g to site-packages, but the
+		printer.ini file must be located in the DLL directory.
 		
 	5.	Edit printer.ini to define the configuration options:
 		-	Path to the compiled MapFish print module JAR file.
@@ -51,11 +52,12 @@ Install:
 		-	The temporary directory that will use the service to store
 			the generated files. Please note that the user running the
 			application on IIS must have full access to this directory 
-			(i.e. write and delete files). If commented, the application
-			will try to use the default OS temporary directory (the one
-			returned by gettempdir())
+			(i.e. write and delete files). If commented out in the 
+			printer.ini file, the application will try to use the
+			default OS temporary directory (the one	returned by 
+			gettempdir())
 	
-	6.	Create a virtual directory on IIS, and add the PyISAPIe DLL as a
+	6.	Create a virtual directory in IIS, and add the PyISAPIe DLL as a
 		Wildcard Script Map.
 		
 	7.	Restart ISS and visit the following URL:
