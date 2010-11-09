@@ -27,14 +27,7 @@ Map = [
     }
   },
 
-  {'(.*)' : 'Error.HandleNotFound'},
+  # Forward all other requests to the default handler.
+  {'(.*)' : 'Default.Request'},
 
-  # Same as the above line:
-  #
-  #{
-  #  'Error' :
-  #  {
-  #    '(.*)' : 'HandleNotFound',
-  #  },
-  #}
 ]
